@@ -187,11 +187,11 @@ public class Controller {
             try {
                 URI uri = url.toURI();
                 File file = new File(uri);
-                return file.getParentFile().getAbsoluteFile();
+                return file.getAbsoluteFile().getParentFile().getParentFile().getParentFile();
             } catch (URISyntaxException e) {
                 e.printStackTrace();
             }
         }
-        return new File(".").getAbsoluteFile();
+        return new File(".").getAbsoluteFile().getParentFile().getParentFile().getParentFile();
     }
 }
