@@ -21,7 +21,8 @@ import java.util.zip.ZipInputStream;
 
 public class Controller {
     @FXML
-    private TextArea textArea;
+    public TextArea textArea;
+
 
     public void initialize() {
         String javaVersion = System.getProperty("java.version");
@@ -102,11 +103,12 @@ public class Controller {
                     return;
                 }
             }
-            String binaryLink = binary.getString("binary_link");
+            final String binaryLink = binary.getString("binary_link");
             File tmpFile = File.createTempFile("tmp", "", cd);
             tmpFile.deleteOnExit();
 
             Platform.runLater(() -> textArea.appendText("downloading\n"));
+            Platform.runLater(() -> textArea.appendText(binaryLink + "\n"));
             URL zipurl = new URL(binaryLink);
             URLConnection zipcon = zipurl.openConnection();
             zipcon.connect();
