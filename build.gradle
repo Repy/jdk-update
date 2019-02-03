@@ -1,0 +1,32 @@
+plugins {
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.7'
+    id 'org.beryx.jlink' version '2.4.2'
+}
+
+group 'info.repy'
+version '1.0-SNAPSHOT'
+
+def mainClass = "info.repy.adoptopenjdkupdate.Main"
+mainClassName = mainClass
+
+repositories {
+    mavenCentral()
+}
+
+javafx {
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
+jlink {
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+    launcher {
+        name = 'helloFX'
+    }
+}
+
+dependencies {
+    compile group: 'org.json', name: 'json', version: '20180813'
+}
+
+
