@@ -32,4 +32,7 @@ dependencies {
     compile group: 'org.json', name: 'json', version: '20180813'
 }
 
-
+task buildZip(type: Zip,dependsOn: jlinkZip) {
+    from zipTree(tasks.jlinkZip.imageZip)
+    from "scripts"
+}

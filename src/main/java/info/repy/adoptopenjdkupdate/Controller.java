@@ -192,6 +192,6 @@ public class Controller {
                 e.printStackTrace();
             }
         }
-        return new File(".").getAbsoluteFile().getParentFile().getParentFile().getParentFile();
+        return new File(".").getAbsoluteFile();
     }
 }
