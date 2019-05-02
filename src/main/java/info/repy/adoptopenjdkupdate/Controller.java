@@ -39,10 +39,28 @@ public class Controller {
         }).start();
     }
 
+    public void check8() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                check(8);
+            }
+        }).start();
+    }
+
     private static final String VERSION = "JAVA_VERSION=";
 
     public void check(int number) {
-        final String API = "https://api.adoptopenjdk.net/v2/info/releases/openjdk" + number + "?release=latest&arch=x64&type=jdk&os=windows&openjdk_impl=hotspot";
+
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("windows")) os = "windows";
+        if (os.contains("mac")) os = "mac";
+        if (os.contains("linux")) os = "linux ";
+
+        String arch = System.getProperty("os.arch").toLowerCase();
+        if (Objects.equals(arch, "amd64")) arch = "x64";
+
+        final String API = "https://api.adoptopenjdk.net/v2/info/releases/openjdk" + number + "?release=latest&arch=" + arch + "&type=jdk&os=" + os + "&openjdk_impl=hotspot";
         Platform.runLater(() -> textArea.appendText("openjdk" + number + " update\n"));
         File cd = getApplicationPath();
         File dir = new File(cd, "jdk" + Integer.toString(number));
