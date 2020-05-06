@@ -1,215 +1,241 @@
 package info.repy.adoptopenjdkupdate;
 
+import info.repy.adoptopenjdkupdate.plugins.AdoptOpenJDK;
+import info.repy.adoptopenjdkupdate.plugins.AmazonCorreto;
+import info.repy.adoptopenjdkupdate.plugins.Distribution;
+import info.repy.adoptopenjdkupdate.plugins.DistributionFile;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextArea;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.utils.IOUtils;
 
-import java.io.*;
-import java.net.*;
-import java.nio.file.FileSystems;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Comparator;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class Controller {
+    public static final int MB = 1024 * 1024;
+
     @FXML
     public TextArea textArea;
 
+    @FXML
+    public ComboBox<Distribution.DistributionList> distributionComboBox;
+
+    @FXML
+    public ComboBox<Distribution.Architecture> architectureComboBox;
+
+    @FXML
+    public ComboBox<Distribution.OS> osComboBox;
+
+    @FXML
+    public ComboBox<Distribution.Version> versionComboBox;
 
     public void initialize() {
         String javaVersion = System.getProperty("java.version");
         String javafxVersion = System.getProperty("javafx.version");
         textArea.setText("Hello, JavaFX " + javafxVersion + "\nRunning on Java " + javaVersion + ".\n");
-    }
 
-    public void check11() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                check(11);
-            }
-        }).start();
-    }
+        distributionComboBox.getItems().setAll(Distribution.DistributionList.values());
+        distributionComboBox.getSelectionModel().select(Distribution.DistributionList.AdoptOpenJDK);
 
-    public void check8() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                check(8);
-            }
-        }).start();
-    }
-
-    private static final String VERSION = "JAVA_VERSION=";
-
-    public void check(int number) {
-
-        String os = System.getProperty("os.name").toLowerCase();
-        if (os.contains("windows")) os = "windows";
-        if (os.contains("mac")) os = "mac";
-        if (os.contains("linux")) os = "linux ";
-
-        String arch = System.getProperty("os.arch").toLowerCase();
-        if (Objects.equals(arch, "amd64")) arch = "x64";
-
-        final String API = "https://api.adoptopenjdk.net/v2/info/releases/openjdk" + number + "?release=latest&arch=" + arch + "&type=jdk&os=" + os + "&openjdk_impl=hotspot";
-        Platform.runLater(() -> textArea.appendText("openjdk" + number + " update\n"));
-        File cd = getApplicationPath();
-        File dir = new File(cd, "jdk" + Integer.toString(number));
-        String versionString = null;
-        if (dir.exists()) {
-            if (!dir.isDirectory()) {
-                throw new RuntimeException();
-            }
-            File release = new File(dir, "release");
-            if (release.exists() && release.isFile()) {
-                try (
-                        FileReader filereader = new FileReader(release);
-                        BufferedReader bufferedReader = new BufferedReader(filereader);
-                ) {
-                    List<String> version = bufferedReader.lines().filter(str -> str.startsWith(VERSION)).collect(Collectors.toList());
-                    if (version.size() == 1) {
-                        String vstr = version.get(0);
-                        vstr = vstr.substring(VERSION.length());
-                        vstr = vstr.trim();
-                        vstr = trim(vstr, '"');
-                        vstr = vstr.trim();
-                        versionString = vstr;
-                        final String fversion = versionString;
-                        Platform.runLater(() -> textArea.appendText("installed " + fversion + "\n"));
-                    }
-                } catch (FileNotFoundException e) {
-                    throw new RuntimeException(e);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+        architectureComboBox.getItems().setAll(Distribution.Architecture.values());
+        String osarch = System.getProperty("os.arch").toLowerCase();
+        if (osarch.startsWith("x86_64")) {
+            architectureComboBox.getSelectionModel().select(Distribution.Architecture.X64);
+        } else if (osarch.startsWith("amd64")) {
+            architectureComboBox.getSelectionModel().select(Distribution.Architecture.X64);
+        } else if (osarch.startsWith("x86")) {
+            architectureComboBox.getSelectionModel().select(Distribution.Architecture.X86);
+        } else if (osarch.startsWith("i386")) {
+            architectureComboBox.getSelectionModel().select(Distribution.Architecture.X86);
+        } else if (osarch.startsWith("i486")) {
+            architectureComboBox.getSelectionModel().select(Distribution.Architecture.X86);
+        } else if (osarch.startsWith("i586")) {
+            architectureComboBox.getSelectionModel().select(Distribution.Architecture.X86);
+        } else if (osarch.startsWith("i686")) {
+            architectureComboBox.getSelectionModel().select(Distribution.Architecture.X86);
         }
-        try {
-            URL url = new URL(API);
-            URLConnection con = url.openConnection();
-            con.connect();
-            String jsonstr;
-            try (
-                    InputStream is = con.getInputStream();
-                    InputStreamReader isr = new InputStreamReader(is);
-                    BufferedReader br = new BufferedReader(isr);
-            ) {
-                StringBuilder sb = new StringBuilder();
-                while ((jsonstr = br.readLine()) != null) {
-                    sb.append(jsonstr);
-                }
-                jsonstr = sb.toString();
-            }
-            JSONObject json = new JSONObject(jsonstr);
-            JSONArray binaries = json.getJSONArray("binaries");
-            JSONObject binary = binaries.getJSONObject(0);
-            JSONObject versionData = binary.getJSONObject("version_data");
-            final String openjdkVersion = versionData.getString("openjdk_version");
-            Platform.runLater(() -> textArea.appendText("latest " + openjdkVersion + "\n"));
-            if (versionString != null) {
-                if (Objects.equals(versionString, openjdkVersion.split("\\+")[0])) {
-                    Platform.runLater(() -> textArea.appendText("finish\n"));
-                    return;
-                }
-            }
-            final String binaryLink = binary.getString("binary_link");
-            File tmpFile = File.createTempFile("tmp", "", cd);
-            tmpFile.deleteOnExit();
 
-            Platform.runLater(() -> textArea.appendText("downloading\n"));
-            Platform.runLater(() -> textArea.appendText(binaryLink + "\n"));
-            URL zipurl = new URL(binaryLink);
+        osComboBox.getItems().setAll(Distribution.OS.values());
+        String osname = System.getProperty("os.name").toLowerCase();
+        if (osname.startsWith("linux")) {
+            osComboBox.getSelectionModel().select(Distribution.OS.Linux);
+        } else if (osname.startsWith("mac")) {
+            osComboBox.getSelectionModel().select(Distribution.OS.Mac);
+        } else if (osname.startsWith("windows")) {
+            osComboBox.getSelectionModel().select(Distribution.OS.Windows);
+        }
+
+        versionComboBox.getItems().setAll(Distribution.Version.values());
+        versionComboBox.getSelectionModel().select(Distribution.Version.JDK11);
+
+    }
+
+    public void download() {
+        Distribution distribution;
+        Distribution.DistributionList dist = distributionComboBox.getSelectionModel().getSelectedItem();
+        switch (dist) {
+            case AdoptOpenJDK:
+                distribution = new AdoptOpenJDK();
+                break;
+            case AmazonCorretto:
+                distribution = new AmazonCorreto();
+                break;
+            default:
+                throw new RuntimeException("not support");
+        }
+        final Distribution.Architecture architecture = architectureComboBox.getSelectionModel().getSelectedItem();
+        final Distribution.OS os = osComboBox.getSelectionModel().getSelectedItem();
+        final Distribution.Version version = versionComboBox.getSelectionModel().getSelectedItem();
+
+        Distribution finalDistribution = distribution;
+        new Thread(() -> check(finalDistribution, version, architecture, os)).start();
+    }
+
+    public void check(Distribution distribution, Distribution.Version version, Distribution.Architecture arch, Distribution.OS os) {
+        log(distribution.getName() + " " + version.name() + " update");
+        try {
+            Path basedir = Path.of(".").toAbsolutePath();
+            basedir = basedir.resolve(distribution.getName());
+            Path dir = basedir.resolve(version.name());
+            Path ver = dir.resolve("check.version");
+            String versionString = null;
+            if (Files.exists(dir)) {
+                if (!Files.isDirectory(dir)) {
+                    throw new RuntimeException();
+                }
+                if (Files.exists(ver) && Files.isRegularFile(ver)) {
+                    try (
+                            BufferedReader bufferedReader = Files.newBufferedReader(ver, StandardCharsets.UTF_8)
+                    ) {
+                        versionString = bufferedReader.lines().collect(Collectors.joining(""));
+                    }
+                }
+            } else {
+                Files.createDirectories(dir);
+            }
+            if (versionString == null) {
+                log("installed version none");
+            } else {
+                log("installed version " + versionString);
+            }
+            DistributionFile distributionFile = distribution.getDistributionFile(version, arch, os);
+            log("latest version " + distributionFile.getName());
+            if (Objects.equals(versionString, distributionFile.getName())) {
+                log("finish");
+                return;
+            }
+            Path tmpFile = Files.createTempFile(basedir, "tmp", "");
+
+
+            log(distributionFile.getUrl());
+
+            URL zipurl = new URL(distributionFile.getUrl());
             URLConnection zipcon = zipurl.openConnection();
             zipcon.connect();
             try (
                     BufferedInputStream bis = new BufferedInputStream(zipcon.getInputStream());
-                    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(tmpFile));
+                    BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream(tmpFile))
             ) {
-                byte[] bytes = new byte[1024];
+                byte[] bytes = new byte[MB];
+                int progress = -1;
+                int nowByte = 0;
                 int count;
                 while ((count = bis.read(bytes)) > 0) {
                     bos.write(bytes, 0, count);
-                }
-            }
-
-            Platform.runLater(() -> textArea.appendText("downloaded\n"));
-            if (dir.exists()) {
-                Files.walk(Paths.get(dir.getAbsolutePath()))
-                        .sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .forEach(File::delete);
-            }
-            Platform.runLater(() -> textArea.appendText("unzip\n"));
-
-            try (ZipInputStream zin = new ZipInputStream(new FileInputStream(tmpFile))) {
-                ZipEntry zipEntry;
-                while ((zipEntry = zin.getNextEntry()) != null) {
-                    Path path = Paths.get(zipEntry.getName());
-                    int len = path.getNameCount();
-                    if (len < 2) continue;
-                    path = path.subpath(1, len);
-                    File dst = new File(dir, path.toString());
-                    dst.getParentFile().mkdirs();
-                    if (zipEntry.isDirectory()) {
-                        dst.mkdir();
-                        continue;
-                    }
-                    try (
-                            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(dst));
-                    ) {
-                        byte[] bytes = new byte[1024];
-                        int count;
-                        while ((count = zin.read(bytes)) > 0) {
-                            bos.write(bytes, 0, count);
-                        }
+                    nowByte += count;
+                    if (nowByte / MB > progress) {
+                        progress = nowByte / MB;
+                        log("downloading = " + progress + "MB");
                     }
                 }
             }
-            Platform.runLater(() -> textArea.appendText("finish\n"));
 
+            log("downloaded");
+            if (Files.exists(dir)) {
+                for (Iterator<Path> it = Files.walk(dir).sorted(Comparator.reverseOrder()).iterator(); it.hasNext(); ) {
+                    Files.delete(it.next());
+                }
+            }
+            log("unzip");
 
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+            if (distributionFile.getType() == DistributionFile.Type.ZIP) {
+                try (InputStream fi = Files.newInputStream(tmpFile);
+                     InputStream bi = new BufferedInputStream(fi);
+                     ArchiveInputStream o = new ZipArchiveInputStream(bi)) {
+                    extract(dir, o);
+                }
+            } else if (distributionFile.getType() == DistributionFile.Type.TARGZ) {
+                try (InputStream fi = Files.newInputStream(tmpFile);
+                     InputStream bi = new BufferedInputStream(fi);
+                     InputStream gzi = new GzipCompressorInputStream(bi);
+                     ArchiveInputStream o = new TarArchiveInputStream(gzi)) {
+                    extract(dir, o);
+                }
+            }
+            Files.delete(tmpFile);
+            try (
+                    BufferedWriter writer = Files.newBufferedWriter(ver, StandardCharsets.UTF_8)
+            ) {
+                writer.write(distributionFile.getName());
+            }
+            log("finish");
         } catch (IOException e) {
-            e.printStackTrace();
+            log(e.getMessage());
         }
-
-
     }
 
-
-    public String trim(String value, char ch) {
-        int len = value.length();
-        int st = 0;
-        while ((st < len) && (value.charAt(st) <= ch)) {
-            st++;
-        }
-        while ((st < len) && (value.charAt(len - 1) <= ch)) {
-            len--;
-        }
-        return ((st > 0) || (len < value.length())) ? value.substring(st, len) : value;
+    public void log(String msg) {
+        Platform.runLater(() -> textArea.appendText(msg + "\n"));
     }
 
-    public static File getApplicationPath() {
-        URL url = Controller.class.getProtectionDomain().getCodeSource().getLocation();
-        if (Objects.equals(url.getProtocol(), "file")) {
-            try {
-                URI uri = url.toURI();
-                File file = new File(uri);
-                return file.getAbsoluteFile().getParentFile().getParentFile().getParentFile();
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
+    public void extract(Path dir, ArchiveInputStream input) throws IOException {
+        ArchiveEntry entry;
+        while ((entry = input.getNextEntry()) != null) {
+            Path p = Path.of(entry.getName());
+            // zipのルートのディレクトリをスキップするので1スタート
+            Path file = dir;
+            for (int i = 1; i < p.getNameCount(); i++) {
+                file = file.resolve(p.getName(i));
+            }
+            if (!input.canReadEntryData(entry)) {
+                throw new RuntimeException("canReadEntryData=false");
+            }
+            if (entry.isDirectory()) {
+                if (!Files.isDirectory(file)) {
+                    Files.createDirectories(file);
+                }
+            } else {
+                Path parent = file.getParent();
+                if (!Files.isDirectory(parent)) {
+                    Files.createDirectories(parent);
+                }
+                try (OutputStream output = Files.newOutputStream(file)) {
+                    IOUtils.copy(input, output);
+                }
             }
         }
-        return new File(".").getAbsoluteFile();
     }
+
 }

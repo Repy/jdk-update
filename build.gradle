@@ -1,7 +1,9 @@
 plugins {
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.0.7'
-    id 'org.beryx.jlink' version '2.4.2'
+    id 'org.openjfx.javafxplugin' version '0.0.8'
+    // zipの"image/lib/modules"内にJDKとOpenJFXとアプリが合体して保存される
+    id 'org.beryx.jlink' version '2.18.0'
+    // JDKのみにしたい場合は"org.beryx.runtime"を使う
 }
 
 group 'info.repy'
@@ -18,18 +20,25 @@ javafx {
 }
 
 run{
+    // add-modulesを探す用
     //jvmArgs = ['--limit-modules','java.base,javafx.controls,javafx.fxml,org.json,jdk.crypto.cryptoki']
 }
 
 jlink {
-    options = ['--compress', '2', '--no-header-files', '--no-man-pages','--add-modules','java.base,jdk.crypto.cryptoki,jdk.crypto.ec']
+    // zipの"image/lib/modules"内にJDKとOpenJFXとアプリが合体して保存される
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages','--add-modules','java.base,jdk.crypto.cryptoki,jdk.crypto.ec']
     launcher {
         name = 'adoptopenjdkupdate'
     }
 }
 
 dependencies {
-    compile group: 'org.json', name: 'json', version: '20180813'
+    implementation 'org.json:json:20180813'
+    implementation 'org.apache.commons:commons-compress:1.20'
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    testCompileOnly 'org.projectlombok:lombok:1.18.12'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 }
 
 task buildZip(type: Zip,dependsOn: jlinkZip) {
