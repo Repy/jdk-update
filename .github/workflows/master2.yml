@@ -21,6 +21,7 @@ jobs:
           java-version: "11"
           architecture: "x64"
       - name: "Gradle Windows"
+        shell: cmd
         run: |
           gradlew.bat buildZip
       - name: "Upload Windows build"
