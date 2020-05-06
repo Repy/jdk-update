@@ -42,6 +42,7 @@ dependencies {
 }
 
 task buildZip(type: Zip,dependsOn: jlinkZip) {
+    archiveName "openjdkupdate.zip"
     from zipTree(tasks.jlinkZip.imageZip)
     from "scripts"
 }

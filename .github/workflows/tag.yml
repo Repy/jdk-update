@@ -1,0 +1,121 @@
+name: "Create Release"
+
+on:
+  push:
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  job_windows:
+    name: "Build for Windows"
+    runs-on: 'windows-latest'
+    steps:
+      - name: "Git Clone"
+        uses: "actions/checkout@v2"
+      - name: "Setup JDK"
+        uses: "actions/setup-java@v1"
+        with:
+          java-version: "11"
+          architecture: "x64"
+      - name: "Gradle Windows"
+        run: |
+          gradlew.bat buildZip
+      - name: "Upload Windows build"
+        uses: "actions/upload-artifact@v1"
+        with:
+          name: "windows"
+          path: "build/distributions/openjdkupdate.zip"
+
+
+  job_mac:
+    name: "Build for Mac"
+    runs-on: 'macos-latest'
+    steps:
+      - name: "Git Clone"
+        uses: "actions/checkout@v2"
+      - name: "Setup JDK"
+        uses: "actions/setup-java@v1"
+        with:
+          java-version: "11"
+          architecture: "x64"
+      - name: "Gradle Mac"
+        run: |
+          chmod +x ./gradlew
+          ./gradlew buildZip
+      - name: "Upload Mac build"
+        uses: "actions/upload-artifact@v1"
+        with:
+          name: "mac"
+          path: "build/distributions/openjdkupdate.zip"
+
+  job_linux:
+    name: "Build for Linux"
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: "Git Clone"
+        uses: "actions/checkout@v2"
+      - name: "Setup JDK"
+        uses: "actions/setup-java@v1"
+        with:
+          java-version: "11"
+          architecture: "x64"
+      - name: "Gradle Linux"
+        run: |
+          chmod +x ./gradlew
+          ./gradlew buildZip
+      - name: "Upload Linux build"
+        uses: "actions/upload-artifact@v1"
+        with:
+          name: "linux"
+          path: "build/distributions/openjdkupdate.zip"
+
+  job_release:
+    name: "Release"
+    needs:
+      - job_windows
+      - job_mac
+      - job_linux
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: "Download all build"
+        uses: "actions/download-artifact@v2"
+        with:
+          path: "build"
+      - name: "Create Release"
+        id: "create_release"
+        uses: "actions/create-release@v1"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          tag_name: "${{ github.ref }}"
+          release_name: "Release ${{ github.ref }}"
+          body: ""
+          draft: false
+          prerelease: false
+      - name: "Release Windows build"
+        uses: "actions/upload-release-asset@v1"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          upload_url: "${{ steps.create_release.outputs.upload_url }}"
+          asset_path: "build/windows/openjdkupdate.zip"
+          asset_name: "windows.zip"
+          asset_content_type: "application/zip"
+      - name: "Release Mac build"
+        uses: "actions/upload-release-asset@v1"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          upload_url: "${{ steps.create_release.outputs.upload_url }}"
+          asset_path: "build/mac/openjdkupdate.zip"
+          asset_name: "mac.zip"
+          asset_content_type: "application/zip"
+      - name: "Release Linux build"
+        uses: "actions/upload-release-asset@v1"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          upload_url: "${{ steps.create_release.outputs.upload_url }}"
+          asset_path: "build/linux/openjdkupdate.zip"
+          asset_name: "linux.zip"
+          asset_content_type: "application/zip"
