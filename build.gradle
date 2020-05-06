@@ -45,8 +45,22 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 }
 
-task buildZip(type: Zip,dependsOn: jlinkZip) {
+task buildWindows(type: Zip,dependsOn: jlinkZip) {
     archiveName "openjdkupdate.zip"
     from zipTree(tasks.jlinkZip.imageZip)
-    from "scripts"
+    from "scripts/adoptopenjdkupdate.bat"
+}
+
+task buildMac(type: Tar,dependsOn: jlinkZip) {
+    compression = Compression.GZIP
+    archiveName "openjdkupdate.tar.gz"
+    from zipTree(tasks.jlinkZip.imageZip)
+    from "scripts/adoptopenjdkupdate.sh"
+}
+
+task buildLinux(type: Tar,dependsOn: jlinkZip) {
+    compression = Compression.GZIP
+    archiveName "openjdkupdate.tar.gz"
+    from zipTree(tasks.jlinkZip.imageZip)
+    from "scripts/adoptopenjdkupdate.sh"
 }

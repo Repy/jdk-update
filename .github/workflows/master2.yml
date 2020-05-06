@@ -23,7 +23,7 @@ jobs:
       - name: "Gradle Windows"
         shell: cmd
         run: |
-          gradlew.bat buildZip
+          gradlew.bat buildWindows
       - name: "Upload Windows build"
         uses: "actions/upload-artifact@v1"
         with:
@@ -45,12 +45,12 @@ jobs:
       - name: "Gradle Mac"
         run: |
           chmod +x ./gradlew
-          ./gradlew buildZip
+          ./gradlew buildMac
       - name: "Upload Mac build"
         uses: "actions/upload-artifact@v1"
         with:
           name: "mac"
-          path: "build/distributions/openjdkupdate.zip"
+          path: "build/distributions/openjdkupdate.tar.gz"
 
   job_linux:
     name: "Build for Linux"
@@ -66,9 +66,9 @@ jobs:
       - name: "Gradle Linux"
         run: |
           chmod +x ./gradlew
-          ./gradlew buildZip
+          ./gradlew buildLinux
       - name: "Upload Linux build"
         uses: "actions/upload-artifact@v1"
         with:
           name: "linux"
-          path: "build/distributions/openjdkupdate.zip"
+          path: "build/distributions/openjdkupdate.tar.gz"

@@ -23,7 +23,7 @@ jobs:
       - name: "Gradle Windows"
         shell: cmd
         run: |
-          gradlew.bat buildZip
+          gradlew.bat buildWindows
       - name: "Upload Windows build"
         uses: "actions/upload-artifact@v1"
         with:
@@ -45,12 +45,12 @@ jobs:
       - name: "Gradle Mac"
         run: |
           chmod +x ./gradlew
-          ./gradlew buildZip
+          ./gradlew buildMac
       - name: "Upload Mac build"
         uses: "actions/upload-artifact@v1"
         with:
           name: "mac"
-          path: "build/distributions/openjdkupdate.zip"
+          path: "build/distributions/openjdkupdate.tar.gz"
 
   job_linux:
     name: "Build for Linux"
@@ -66,12 +66,12 @@ jobs:
       - name: "Gradle Linux"
         run: |
           chmod +x ./gradlew
-          ./gradlew buildZip
+          ./gradlew buildLinux
       - name: "Upload Linux build"
         uses: "actions/upload-artifact@v1"
         with:
           name: "linux"
-          path: "build/distributions/openjdkupdate.zip"
+          path: "build/distributions/openjdkupdate.tar.gz"
 
   job_release:
     name: "Release"
@@ -111,7 +111,7 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         with:
           upload_url: "${{ steps.create_release.outputs.upload_url }}"
-          asset_path: "build/mac/openjdkupdate.zip"
+          asset_path: "build/mac/openjdkupdate.tar.gz"
           asset_name: "mac.zip"
           asset_content_type: "application/zip"
       - name: "Release Linux build"
@@ -120,6 +120,6 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         with:
           upload_url: "${{ steps.create_release.outputs.upload_url }}"
-          asset_path: "build/linux/openjdkupdate.zip"
+          asset_path: "build/linux/openjdkupdate.tar.gz"
           asset_name: "linux.zip"
           asset_content_type: "application/zip"
