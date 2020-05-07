@@ -5,10 +5,10 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>adoptopenjdkupdate.sh</string>
+	<string>openjdkdownloader.sh</string>
 	<key>CFBundleIconFile</key>
 	<string>icon.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>info.repy.OpenJDKUpdate</string>
+	<string>info.repy.openjdkdownloader</string>
 </dict>
 </plist>

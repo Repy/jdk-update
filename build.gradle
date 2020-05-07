@@ -32,7 +32,7 @@ jlink {
     // zipの"image/lib/modules"内にJDKとOpenJFXとアプリが合体して保存される
     options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages', '--add-modules', 'java.base,jdk.crypto.cryptoki,jdk.crypto.ec']
     launcher {
-        name = 'adoptopenjdkupdate'
+        name = 'openjdkdownloader'
     }
 }
 
@@ -48,7 +48,7 @@ dependencies {
 task buildWindows(type: Zip, dependsOn: jlinkZip) {
     archiveName = "openjdkupdate.zip"
     from zipTree(tasks.jlinkZip.imageZip)
-    from "scripts/windows/adoptopenjdkupdate.bat"
+    from "scripts/windows/openjdkdownloader.bat"
 }
 
 task buildMacDir(dependsOn: jlinkZip) {
@@ -75,5 +75,5 @@ task buildLinux(type: Tar, dependsOn: jlinkZip) {
     compression = Compression.GZIP
     archiveName = "openjdkupdate.tar.gz"
     from zipTree(tasks.jlinkZip.imageZip)
-    from "scripts/linux/adoptopenjdkupdate.sh"
+    from "scripts/linux/openjdkdownloader.sh"
 }

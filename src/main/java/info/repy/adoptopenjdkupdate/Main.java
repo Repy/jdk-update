@@ -3,6 +3,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 public class Main extends Application {
@@ -10,7 +11,8 @@ public class Main extends Application {
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("Controller.fxml"));
         Scene scene = new Scene(root, 300, 275);
-        stage.setTitle("FXML Welcome");
+        stage.getIcons().add(new Image(Main.class.getResourceAsStream("/icon.png")));
+        stage.setTitle("openjdk downloader");
         stage.setScene(scene);
         stage.show();
     }
