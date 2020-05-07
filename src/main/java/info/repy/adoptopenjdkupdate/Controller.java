@@ -10,7 +10,9 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.utils.IOUtils;
@@ -22,15 +24,13 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Objects;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Controller {
@@ -235,7 +235,39 @@ public class Controller {
                     IOUtils.copy(input, output);
                 }
             }
+            setPermission(file, entry);
         }
     }
 
+    @SuppressWarnings("OctalInteger")
+    private static void setPermission(Path path, ArchiveEntry entry) throws IOException {
+        int mode = 0;
+        if (entry instanceof TarArchiveEntry) {
+            TarArchiveEntry raw = (TarArchiveEntry) entry;
+            mode = raw.getMode();
+        } else if (entry instanceof ZipArchiveEntry) {
+            ZipArchiveEntry raw = (ZipArchiveEntry) entry;
+            mode = raw.getUnixMode();
+        }
+        if (mode == 0) {
+            if (Files.isDirectory(path)) mode = 0755; // 8進数
+            else mode = 0644; // 8進数
+        }
+        Files.setPosixFilePermissions(path, getPermission(mode));
+    }
+
+    @SuppressWarnings("OctalInteger")
+    private static Set<PosixFilePermission> getPermission(int mode) {
+        Set<PosixFilePermission> ret = new HashSet<>();
+        if ((mode & 0400) != 0) ret.add(PosixFilePermission.OWNER_READ);
+        if ((mode & 0200) != 0) ret.add(PosixFilePermission.OWNER_WRITE);
+        if ((mode & 0100) != 0) ret.add(PosixFilePermission.OWNER_EXECUTE);
+        if ((mode & 0040) != 0) ret.add(PosixFilePermission.GROUP_READ);
+        if ((mode & 0020) != 0) ret.add(PosixFilePermission.GROUP_WRITE);
+        if ((mode & 0010) != 0) ret.add(PosixFilePermission.GROUP_EXECUTE);
+        if ((mode & 0004) != 0) ret.add(PosixFilePermission.OTHERS_READ);
+        if ((mode & 0002) != 0) ret.add(PosixFilePermission.OTHERS_WRITE);
+        if ((mode & 0001) != 0) ret.add(PosixFilePermission.OTHERS_EXECUTE);
+        return ret;
+    }
 }
