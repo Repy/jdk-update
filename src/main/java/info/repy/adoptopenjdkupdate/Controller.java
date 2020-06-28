@@ -201,7 +201,7 @@ public class Controller {
                 writer.write(distributionFile.getName());
             }
             log("finish");
-        } catch (IOException e) {
+        } catch (Exception e) {
             log(e.getMessage());
         }
     }
@@ -253,7 +253,11 @@ public class Controller {
             if (Files.isDirectory(path)) mode = 0755; // 8進数
             else mode = 0644; // 8進数
         }
-        Files.setPosixFilePermissions(path, getPermission(mode));
+        try{
+            Files.setPosixFilePermissions(path, getPermission(mode));
+        }catch (UnsupportedOperationException e){
+            // Windows
+        }
     }
 
     @SuppressWarnings("OctalInteger")
