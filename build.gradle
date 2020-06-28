@@ -9,10 +9,14 @@ plugins {
 group 'info.repy'
 version '1.0-SNAPSHOT'
 
-mainClassName = "info.repy.adoptopenjdkupdate/info.repy.adoptopenjdkupdate.Main"
+java{
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
 
-repositories {
-    mavenCentral()
+application {
+    mainModule = 'info.repy.adoptopenjdkupdate'
+    mainClass = 'info.repy.adoptopenjdkupdate.Main'
 }
 
 compileJava {
@@ -23,17 +27,16 @@ javafx {
     modules = ['javafx.controls', 'javafx.fxml']
 }
 
-run {
-    // add-modulesを探す用
-    //jvmArgs = ['--limit-modules','java.base,javafx.controls,javafx.fxml,org.json,jdk.crypto.cryptoki']
-}
-
 jlink {
     // zipの"image/lib/modules"内にJDKとOpenJFXとアプリが合体して保存される
     options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages', '--add-modules', 'java.base,jdk.crypto.cryptoki,jdk.crypto.ec']
     launcher {
         name = 'openjdkdownloader'
     }
+}
+
+repositories {
+    mavenCentral()
 }
 
 dependencies {
