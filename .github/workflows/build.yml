@@ -22,7 +22,7 @@ jobs:
         with:
           java-version: "17"
           architecture: "x64"
-          distributions: "corretto"
+          distribution: "corretto"
       - name: "Gradle Windows"
         shell: cmd
         run: |
@@ -45,7 +45,7 @@ jobs:
         with:
           java-version: "17"
           architecture: "x64"
-          distributions: "corretto"
+          distribution: "corretto"
       - name: "Gradle Mac"
         run: |
           chmod +x ./gradlew
@@ -67,7 +67,7 @@ jobs:
         with:
           java-version: "17"
           architecture: "x64"
-          distributions: "corretto"
+          distribution: "corretto"
       - name: "Gradle Linux"
         run: |
           chmod +x ./gradlew
