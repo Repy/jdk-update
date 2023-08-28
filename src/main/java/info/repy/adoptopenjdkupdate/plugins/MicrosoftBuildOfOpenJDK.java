@@ -1,7 +1,5 @@
 package info.repy.adoptopenjdkupdate.plugins;
 
-import org.json.JSONArray;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,53 +7,48 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 
-public class AmazonCorreto implements Distribution {
+public class MicrosoftBuildOfOpenJDK implements Distribution {
     public String getViewName() {
-        return "Amazon Correto";
+        return "Microsoft Build of OpenJDK";
     }
     public String getDirName() {
-        return "AmazonCorreto";
+        return "MicrosoftOpenJDK";
     }
 
     private String getAPI(boolean checksum, Version version, Architecture architecture, OS os) {
         StringBuilder builder = new StringBuilder();
-        if (checksum) {
-            builder.append("https://corretto.aws/downloads/latest_checksum/");
-        } else {
-            builder.append("https://corretto.aws/downloads/latest/");
-        }
+        builder.append("https://aka.ms/download-jdk/");
         switch (version) {
-            case JDK8:
-                builder.append("amazon-corretto-8");
-                break;
             case JDK11:
-                builder.append("amazon-corretto-11");
+                builder.append("microsoft-jdk-17");
                 break;
             case JDK17:
-                builder.append("amazon-corretto-17");
+                builder.append("microsoft-jdk-17");
                 break;
             default:
                 throw new RuntimeException("not support");
         }
         switch (architecture) {
             case X64:
-                builder.append("-x64");
+                switch (os) {
+                    case Windows:
+                        builder.append("-windows-x64.zip");
+                        break;
+                    case Linux:
+                        builder.append("-linux-x64.tar.gz");
+                        break;
+                    case Mac:
+                        builder.append("-macOS-x64.tar.gz");
+                        break;
+                    default:
+                        throw new RuntimeException("not support");
+                }
                 break;
             default:
                 throw new RuntimeException("not support");
         }
-        switch (os) {
-            case Windows:
-                builder.append("-windows-jdk.zip");
-                break;
-            case Linux:
-                builder.append("-linux-jdk.tar.gz");
-                break;
-            case Mac:
-                builder.append("-macos-jdk.tar.gz");
-                break;
-            default:
-                throw new RuntimeException("not support");
+        if (checksum) {
+            builder.append(".sha256sum.txt");
         }
         return builder.toString();
     }

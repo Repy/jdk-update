@@ -1,8 +1,8 @@
 plugins {
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.0.8'
+    id 'org.openjfx.javafxplugin' version '0.0.14'
     // zipの"image/lib/modules"内にJDKとOpenJFXとアプリが合体して保存される
-    id 'org.beryx.jlink' version '2.18.0'
+    id 'org.beryx.jlink' version '2.26.0'
     // JDKのみにしたい場合は"org.beryx.runtime"を使う
 }
 
@@ -10,8 +10,8 @@ group 'info.repy'
 version '1.0-SNAPSHOT'
 
 java{
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 application {
@@ -40,16 +40,16 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.json:json:20180813'
-    implementation 'org.apache.commons:commons-compress:1.20'
-    compileOnly 'org.projectlombok:lombok:1.18.12'
-    annotationProcessor 'org.projectlombok:lombok:1.18.12'
-    testCompileOnly 'org.projectlombok:lombok:1.18.12'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+    implementation 'org.json:json:20230227'
+    implementation 'org.apache.commons:commons-compress:1.21'
+    compileOnly 'org.projectlombok:lombok:1.18.28'
+    annotationProcessor 'org.projectlombok:lombok:1.18.28'
+    testCompileOnly 'org.projectlombok:lombok:1.18.28'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.28'
 }
 
 task buildWindows(type: Zip, dependsOn: jlinkZip) {
-    archiveName = "openjdkupdate.zip"
+    archiveFileName = "openjdkupdate.zip"
     from zipTree(tasks.jlinkZip.imageZip)
     from "scripts/windows/openjdkdownloader.bat"
 }
@@ -70,13 +70,13 @@ task buildMacDir(dependsOn: jlinkZip) {
 
 task buildMac(type: Tar, dependsOn: buildMacDir) {
     compression = Compression.GZIP
-    archiveName = "openjdkupdate.tar.gz"
+    archiveFileName = "openjdkupdate.tar.gz"
     from 'build/macapp'
 }
 
 task buildLinux(type: Tar, dependsOn: jlinkZip) {
     compression = Compression.GZIP
-    archiveName = "openjdkupdate.tar.gz"
+    archiveFileName = "openjdkupdate.tar.gz"
     from zipTree(tasks.jlinkZip.imageZip)
     from "scripts/linux/openjdkdownloader.sh"
 }

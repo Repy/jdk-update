@@ -1,9 +1,6 @@
 package info.repy.adoptopenjdkupdate;
 
-import info.repy.adoptopenjdkupdate.plugins.AdoptOpenJDK;
-import info.repy.adoptopenjdkupdate.plugins.AmazonCorreto;
-import info.repy.adoptopenjdkupdate.plugins.Distribution;
-import info.repy.adoptopenjdkupdate.plugins.DistributionFile;
+import info.repy.adoptopenjdkupdate.plugins.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
@@ -57,7 +54,7 @@ public class Controller {
         textArea.setText("Hello, JavaFX " + javafxVersion + "\nRunning on Java " + javaVersion + ".\n");
 
         distributionComboBox.getItems().setAll(Distribution.DistributionList.values());
-        distributionComboBox.getSelectionModel().select(Distribution.DistributionList.AdoptOpenJDK);
+        distributionComboBox.getSelectionModel().select(Distribution.DistributionList.AmazonCorretto);
 
         architectureComboBox.getItems().setAll(Distribution.Architecture.values());
         String osarch = System.getProperty("os.arch").toLowerCase();
@@ -88,7 +85,7 @@ public class Controller {
         }
 
         versionComboBox.getItems().setAll(Distribution.Version.values());
-        versionComboBox.getSelectionModel().select(Distribution.Version.JDK11);
+        versionComboBox.getSelectionModel().select(Distribution.Version.JDK17);
 
     }
 
@@ -96,8 +93,8 @@ public class Controller {
         Distribution distribution;
         Distribution.DistributionList dist = distributionComboBox.getSelectionModel().getSelectedItem();
         switch (dist) {
-            case AdoptOpenJDK:
-                distribution = new AdoptOpenJDK();
+            case MicrosoftBuildOfOpenJDK:
+                distribution = new MicrosoftBuildOfOpenJDK();
                 break;
             case AmazonCorretto:
                 distribution = new AmazonCorreto();
@@ -114,10 +111,10 @@ public class Controller {
     }
 
     public void check(Distribution distribution, Distribution.Version version, Distribution.Architecture arch, Distribution.OS os) {
-        log(distribution.getName() + " " + version.name() + " update");
+        log(distribution.getViewName() + " " + version.name() + " update");
         try {
             Path basedir = Path.of(".").toAbsolutePath();
-            basedir = basedir.resolve(distribution.getName());
+            basedir = basedir.resolve(distribution.getDirName());
             Path dir = basedir.resolve(version.name());
             Path ver = dir.resolve("check.version");
             String versionString = null;
