@@ -20,7 +20,7 @@ public class MicrosoftBuildOfOpenJDK implements Distribution {
         builder.append("https://aka.ms/download-jdk/");
         switch (version) {
             case JDK11:
-                builder.append("microsoft-jdk-17");
+                builder.append("microsoft-jdk-11");
                 break;
             case JDK17:
                 builder.append("microsoft-jdk-17");
