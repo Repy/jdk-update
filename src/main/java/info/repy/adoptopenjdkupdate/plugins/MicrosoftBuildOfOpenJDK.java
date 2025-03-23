@@ -25,6 +25,9 @@ public class MicrosoftBuildOfOpenJDK implements Distribution {
             case JDK17:
                 builder.append("microsoft-jdk-17");
                 break;
+            case JDK21:
+                builder.append("microsoft-jdk-21");
+                break;
             default:
                 throw new RuntimeException("not support");
         }

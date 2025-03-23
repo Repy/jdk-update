@@ -34,6 +34,9 @@ public class AmazonCorreto implements Distribution {
             case JDK17:
                 builder.append("amazon-corretto-17");
                 break;
+            case JDK21:
+                builder.append("amazon-corretto-21");
+                break;
             default:
                 throw new RuntimeException("not support");
         }

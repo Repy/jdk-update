@@ -28,5 +28,6 @@ public interface Distribution {
         JDK8,
         JDK11,
         JDK17;
+        JDK21;
     }
 }
