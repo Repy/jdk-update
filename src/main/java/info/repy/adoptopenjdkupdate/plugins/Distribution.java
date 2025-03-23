@@ -27,7 +27,7 @@ public interface Distribution {
     public static enum Version {
         JDK8,
         JDK11,
-        JDK17;
+        JDK17,
         JDK21;
     }
 }
